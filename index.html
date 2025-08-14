@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Calculadora Pizza Napolitana (Poolish)</title>
+  <style>
+    :root{
+      --bg:#fbfcfd; --card:#ffffff; --muted:#6b7280; --accent:#0ea5a4; --glass: rgba(14,165,164,0.06);
+      --radius:12px; --pad:14px; --maxw:980px;
+    }
+    *{box-sizing:border-box;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial}
+    body{background:linear-gradient(180deg,#f7fafb, #ffffff); color:#0f172a; padding:28px; display:flex; align-items:center; justify-content:center; min-height:100vh}
+    .wrap{width:100%; max-width:var(--maxw);} 
+    header{display:flex; align-items:center; gap:16px; margin-bottom:18px}
+    .logo{height:56px; width:56px; border-radius:10px; overflow:hidden; background:var(--glass); display:flex; align-items:center; justify-content:center}
+    .logo img{max-height:100%; max-width:100%; display:block}
+    h1{font-size:20px; margin:0}
+    p.lead{margin:0; color:var(--muted); font-size:13px}
+
+    .grid{display:grid; grid-template-columns: 1fr 360px; gap:18px}
+    .card{background:var(--card); padding:var(--pad); border-radius:var(--radius); box-shadow: 0 6px 18px rgba(12,20,28,0.06)}
+
+    label.small{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
+    select,input[type=number],input[type=text]{width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6eef2; outline:none}
+    .row{display:flex; gap:12px}
+    .row > *{flex:1}
+    .inline{display:flex; gap:8px; align-items:center}
+    .muted{color:var(--muted); font-size:13px}
+    .hint{font-size:12px; color:var(--muted); margin-top:8px}
+
+    .slider{width:100%}
+    .result{font-weight:600; font-size:16px}
+    .result-small{font-weight:600; font-size:14px}
+
+    .icons{display:flex; gap:8px; align-items:center}
+    .icon-btn{display:inline-flex; gap:8px; align-items:center; padding:8px 10px; border-radius:8px; background:#f8fafb; border:1px solid #edf7f7}
+
+    table{width:100%; border-collapse:collapse; margin-top:10px}
+    td,th{padding:8px 6px; border-bottom:1px dashed #eef3f4; text-align:left}
+    th{font-weight:600; font-size:13px; color:var(--muted)}
+
+    .note{font-size:13px; color:var(--muted); margin-top:12px}
+    footer{margin-top:12px; font-size:12px; color:var(--muted)}
+
+    /* responsive */
+    @media (max-width:900px){ .grid{grid-template-columns:1fr; } .card.sidebar{order:-1} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo" title="Logo del proyecto">
+        <!-- Coloca tu logo en la misma carpeta con nombre logo.png -->
+        <img src="logo.png" alt="Logo proyecto" onerror="this.style.opacity=0.3; this.parentElement.innerHTML='<svg width=40 height=40 viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"#e6fffb\" stroke=\"#06b6d4\" stroke-width=1.5/><text x=\"12\" y=\"15\" font-size=\"9\" text-anchor=\"middle\" fill=\"#026a68\">LOGO</text></svg>'" />
+      </div>
+      <div>
+        <h1>Calculadora: Pizza napolitana (con poolish)</h1>
+        <p class="lead">Herramienta minimalista para calcular ingredientes — pensada para fermentación lenta (2–3 días) y harinas de alta proteína.</p>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px">
+          <div style="flex:1">
+            <label class="small">Tamaño de pizza</label>
+            <select id="sizeSel">
+              <option value="12">12 pulgadas</option>
+              <option value="14">14 pulgadas</option>
+              <option value="16">16 pulgadas</option>
+            </select>
+          </div>
+          <div style="width:160px">
+            <label class="small">Peso por pizza (g)</label>
+            <input id="ballWeight" type="number" min="50" placeholder="Autousado" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-bottom:10px">
+          <div>
+            <label class="small">Cantidad de pizzas</label>
+            <input id="count" type="number" min="1" placeholder="1" />
+          </div>
+          <div>
+            <label class="small">Habilitar poolish</label>
+            <div class="inline">
+              <input id="poolishToggle" type="checkbox" />
+              <div class="muted">Poolish 100% hidratación</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="poolishBox" style="display:none; margin-bottom:12px">
+          <label class="small">Poolish (puedes ajustar)</label>
+          <div class="row">
+            <input id="poolishFlour" type="number" min="0" value="200" />
+            <input id="poolishWater" type="number" min="0" value="200" />
+          </div>
+          <div class="hint">Por defecto: 200 g harina + 200 g agua (100% hidratación).</div>
+        </div>
+
+        <div style="margin-bottom:12px">
+          <label class="small">Hidratación total: <strong id="hydVal">62%</strong></label>
+          <input id="hydration" class="slider" type="range" min="50" max="80" step="1" value="62" />
+        </div>
+
+        <div style="margin-bottom:12px">
+          <label class="small">Pérdida de masa esperada (ajusta al alza)</label>
+          <input id="loss" type="range" min="0" max="10" step="0.5" value="0" />
+          <div class="muted" style="font-size:13px"><span id="lossVal">0%</span> — incrementa ingredientes para cubrir evaporación/recorte.</div>
+        </div>
+
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px">
+          <div style="flex:1">
+            <label class="small">Redondear hacia arriba</label>
+            <div class="inline">
+              <input id="roundToggle" type="checkbox" />
+              <select id="roundStep" style="width:100px">
+                <option value="1">1 g</option>
+                <option value="5" selected>5 g</option>
+                <option value="10">10 g</option>
+              </select>
+            </div>
+          </div>
+          <div style="width:170px">
+            <label class="small">Sal (% sobre harina)</label>
+            <input id="saltPercent" type="number" min="0" step="0.1" value="2.5" />
+          </div>
+        </div>
+
+        <div style="margin-bottom:10px">
+          <label class="small">Levadura</label>
+          <div class="row">
+            <label class="inline"><input type="radio" name="yeast" value="dry" checked /> Seca (instantánea)</label>
+            <label class="inline"><input type="radio" name="yeast" value="fresh" /> Fresca</label>
+          </div>
+          <div class="hint">Sugerencia para fermentación lenta 2–3 días: seca ≈ 0.10% de la harina total; fresca ≈ 0.30% (≈3× seca). Puedes ajustar si quieres.</div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:8px; align-items:center">
+          <button id="calcBtn" style="background:var(--accent); color:white; border:none; padding:10px 14px; border-radius:10px; cursor:pointer">Calcular</button>
+          <button id="resetBtn" style="background:transparent; border:1px solid #e6eef2; padding:9px 12px; border-radius:10px; cursor:pointer">Restablecer</button>
+          <div style="margin-left:auto" class="muted">Resultados se actualizan al calcular.</div>
+        </div>
+
+        <div id="resultArea" style="margin-top:14px"></div>
+
+        <div class="note">Nota: esta calculadora está diseñada pensando en fermentación lenta (2–3 días) y harina de fuerza (alto contenido proteico). Ajusta sal y levadura según preferencia.</div>
+      </div>
+
+      <aside class="card sidebar">
+        <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px">
+          <div style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; background:#f0fdf4; border-radius:10px">
+            <!-- Water SVG -->
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3s4 4.5 4 7.5A4 4 0 0 1 12 15a4 4 0 0 1-4-4.5C8 7.5 12 3 12 3z" stroke="#0369a1" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="result-small">Hidratación</div>
+            <div class="muted">Controla la elasticidad y manejo de la masa</div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px">
+          <div style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; background:#fff7ed; border-radius:10px">
+            <!-- Salt SVG -->
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2v20" stroke="#b45309" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="#b45309" stroke-width="1.2"/></svg>
+          </div>
+          <div>
+            <div class="result-small">Sal</div>
+            <div class="muted">Porcentaje sobre la harina total</div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; align-items:center">
+          <div style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; background:#fff0f6; border-radius:10px">
+            <!-- Yeast SVG -->
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3c2 0 3.5 1 3.5 3.5S12 12 12 12s-3.5-3.5-3.5-5.5S10 3 12 3z" stroke="#7c2d12" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="result-small">Levadura</div>
+            <div class="muted">Cantidad sugerida para fermentación larga</div>
+          </div>
+        </div>
+
+        <hr style="margin:12px 0; border:none; border-top:1px solid #f1f5f9" />
+        <div class="muted" style="font-size:13px">Pesos sugeridos (puedes personalizar):</div>
+        <ul style="padding-left:18px; margin:8px 0 0 0; color:var(--muted)">
+          <li>12" → 250 g</li>
+          <li>14" → 320 g</li>
+          <li>16" → 380 g</li>
+        </ul>
+        <footer>Archivo único: <strong>index.html</strong></footer>
+      </aside>
+    </div>
+
+  </div>
+
+  <script>
+    // Helpers
+    function $(id){return document.getElementById(id)}
+    function qs(name){return document.querySelector(name)}
+
+    // Default suggested ball weights (g)
+    const suggested = {12:250,14:320,16:380}
+
+    // Elements
+    const sizeSel = $('sizeSel');
+    const ballWeight = $('ballWeight');
+    const count = $('count');
+    const poolishToggle = $('poolishToggle');
+    const poolishBox = $('poolishBox');
+    const poolishFlour = $('poolishFlour');
+    const poolishWater = $('poolishWater');
+    const hydration = $('hydration');
+    const hydVal = $('hydVal');
+    const loss = $('loss');
+    const lossVal = $('lossVal');
+    const roundToggle = $('roundToggle');
+    const roundStep = $('roundStep');
+    const saltPercent = $('saltPercent');
+    const calcBtn = $('calcBtn');
+    const resultArea = $('resultArea');
+    const resetBtn = $('resetBtn');
+
+    // Update UI dynamic displays
+    hydration.addEventListener('input', ()=> hydVal.textContent = hydration.value + '%')
+    loss.addEventListener('input', ()=> lossVal.textContent = loss.value + '%')
+    poolishToggle.addEventListener('change', ()=> poolishBox.style.display = poolishToggle.checked ? 'block' : 'none')
+
+    // Choose suggested weight when size changes (only if empty)
+    sizeSel.addEventListener('change', ()=>{
+      if(!ballWeight.value) ballWeight.value = suggested[sizeSel.value]
+    })
+
+    // Reset function
+    resetBtn.addEventListener('click', ()=>{
+      sizeSel.value = '12'; ballWeight.value=''; count.value=''; poolishToggle.checked=false; poolishBox.style.display='none'; poolishFlour.value=200; poolishWater.value=200;
+      hydration.value=62; hydVal.textContent='62%'; loss.value=0; lossVal.textContent='0%'; roundToggle.checked=false; roundStep.value=5; saltPercent.value=2.5; document.querySelector('input[name=yeast][value=dry]').checked=true; resultArea.innerHTML='';
+    })
+
+    // Main calculation
+    calcBtn.addEventListener('click', ()=>{
+      // Read inputs, with defaults
+      const size = parseInt(sizeSel.value,10);
+      const countVal = Number(count.value) || 1; // default 1
+      const ball = Number(ballWeight.value) || suggested[size]; // if empty use suggested
+
+      const targetDough = countVal * ball; // grams
+      let adjustedTarget = targetDough * (1 + Number(loss.value)/100); // adjust for loss
+
+      const H = Number(hydration.value)/100; // hydration decimal
+      const saltP = Number(saltPercent.value)/100; // salt percent decimal
+
+      // Yeast defaults: seca 0.10%, fresca 0.30%
+      const yeastType = document.querySelector('input[name=yeast]:checked').value;
+      const yeastPercentDry = 0.001; // 0.10%
+      const yeastPercentFresh = 0.003; // 0.30%
+      const yP = yeastType === 'dry' ? yeastPercentDry : yeastPercentFresh;
+
+      // Poolish
+      const poolishOn = poolishToggle.checked;
+      const poolFlour = Number(poolishFlour.value) || 0;
+      const poolWater = Number(poolishWater.value) || 0;
+
+      // Basic formula:
+      // totalMass = F + W + salt + yeast
+      // W = H * F
+      // salt = saltP * F
+      // yeast = yP * F
+      // => totalMass = F * (1 + H + saltP + yP)
+
+      const denom = (1 + H + saltP + yP);
+      let totalFlour = adjustedTarget / denom; // grams
+      let totalWater = H * totalFlour;
+      let salt = saltP * totalFlour;
+      let yeast = yP * totalFlour;
+
+      // If using poolish, subtract poolish amounts from final dough (poolish is part of total flour/water)
+      let flourToAdd = totalFlour - (poolishOn ? poolFlour : 0);
+      let waterToAdd = totalWater - (poolishOn ? poolWater : 0);
+
+      // Defensive: don't go negative
+      if(flourToAdd < 0) flourToAdd = 0;
+      if(waterToAdd < 0) waterToAdd = 0;
+
+      // Rounding if enabled — round up to nearest step
+      function ceilTo(v, step){ if(!Number(step)) return Math.ceil(v); return Math.ceil(v/step)*step }
+      const roundingOn = roundToggle.checked;
+      const step = Number(roundStep.value) || 1;
+
+      const display = (v)=>{
+        if(roundingOn) return ceilTo(v, step);
+        // show up to 1 decimal if <5g
+        return (Math.abs(v - Math.round(v)) > 0.05) ? Number(v.toFixed(1)) : Math.round(v);
+      }
+
+      // Prepare results
+      const results = {
+        targetDough: Math.round(targetDough),
+        adjustedTarget: Math.round(adjustedTarget),
+        totalFlour: totalFlour,
+        totalWater: totalWater,
+        salt: salt,
+        yeast: yeast,
+        flourToAdd: flourToAdd,
+        waterToAdd: waterToAdd,
+        poolishOn: poolishOn,
+        poolFlour: poolFlour,
+        poolWater: poolWater,
+        countVal: countVal,
+        ball: ball,
+        H: H
+      }
+
+      // Build HTML
+      let html = '';
+      html += `<table><tbody>`;
+      html += `<tr><th>Objetivo (masa final)</th><td>${results.targetDough} g (${results.countVal} × ${results.ball} g)</td></tr>`;
+      if(Number(loss.value)>0) html += `<tr><th>Considerando pérdida</th><td>${results.adjustedTarget} g (pérdida ${loss.value}%)</td></tr>`;
+      html += `<tr><th>Hidratación total</th><td>${hydration.value}%</td></tr>`;
+      html += `<tr><th>Harina total</th><td class="result">${display(results.totalFlour)} g</td></tr>`;
+      html += `<tr><th>Agua total</th><td class="result">${display(results.totalWater)} g</td></tr>`;
+      html += `<tr><th>Sal (${(saltPercent.value)}% sobre harina)</th><td>${display(results.salt)} g</td></tr>`;
+      html += `<tr><th>Levadura (${yeastType === 'dry' ? 'seca' : 'fresca'})</th><td>${display(results.yeast)} g</td></tr>`;
+
+      if(poolishOn){
+        html += `<tr><th>Poolish (100% hidr.)</th><td>${results.poolFlour} g harina + ${results.poolWater} g agua = ${results.poolFlour + results.poolWater} g</td></tr>`;
+        html += `<tr><th>Harina para agregar (masa)</th><td>${display(results.flourToAdd)} g</td></tr>`;
+        html += `<tr><th>Agua para agregar (masa)</th><td>${display(results.waterToAdd)} g</td></tr>`;
+      }
+
+      // Small instructions
+      html += `</tbody></table>`;
+      html += `<div style="margin-top:10px; font-size:13px; color:var(--muted)">Sugerencia: amasar suavemente y fermentar en frío 48–72 horas. Ajusta levadura según temperatura y comportamiento de la masa.</div>`;
+
+      resultArea.innerHTML = html;
+
+      // Accessibility: scroll result into view
+      resultArea.scrollIntoView({behavior:'smooth'});
+    })
+
+    // Trigger initial suggested weight on load
+    window.addEventListener('load', ()=>{ if(!ballWeight.value) ballWeight.value = suggested[sizeSel.value] })
+  </script>
+</body>
+</html>
